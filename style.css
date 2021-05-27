@@ -23,6 +23,8 @@ ul {
   padding: 20px 20px;
   border: 1px solid #d3d3d3;
   margin: 5px 0;
+  background-color: #ffffff;
+  opacity: 0.8;
 }
 
 .origins > li:hover, .destinations > li:hover{
@@ -32,6 +34,7 @@ ul {
 
 .origins > li.selected, .destinations > li.selected {
   background-color: #f2f3ff;
+  z-index: 1;
 }
 
 input {
@@ -59,21 +62,35 @@ input:focus {
   color: white;
   cursor: pointer;
   width: 100%;
+
 }
 
 .my-trip {
   width: 75%;
   margin: auto;
+  border: 1px solid #d3d3d9;
+  background-color: #ffffff;
+  opacity: 0.8;
 }
 
 .my-trip li {
   margin: 10px 0px;
   font-size: 17px;
-  display: flex;
+  /* display: flex; */
 }
 
 .my-trip i {
   margin-right: 15px;
   font-size: 25px;
   align-self: center;
+}
+
+#map {
+  display:block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -10;
+  width: 100%;
+  height: 100%;
 }
