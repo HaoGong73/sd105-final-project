@@ -1,0 +1,79 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 4fr;
+  font-family: sans-serif;
+}
+
+body > * {
+  padding: 5px;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.origins > li, .destinations > li {
+  padding: 20px 20px;
+  border: 1px solid #d3d3d3;
+  margin: 5px 0;
+}
+
+.origins > li:hover, .destinations > li:hover{
+  background-color: #efefef;
+  cursor: pointer;
+}
+
+.origins > li.selected, .destinations > li.selected {
+  background-color: #f2f3ff;
+}
+
+input {
+  border: 0;
+  border-bottom: 1px solid #919191;
+  width: 100%;
+  padding: 5px;
+  font-size: 16px;
+  height: 40px;
+}
+
+input:focus {
+  outline: 0;
+}
+
+.name {
+  font-weight: bold;
+}
+
+.plan-trip {
+  height: 40px;
+  border: 0;
+  background: #4146df;
+  font-size: 17px;
+  color: white;
+  cursor: pointer;
+  width: 100%;
+}
+
+.my-trip {
+  width: 75%;
+  margin: auto;
+}
+
+.my-trip li {
+  margin: 10px 0px;
+  font-size: 17px;
+  display: flex;
+}
+
+.my-trip i {
+  margin-right: 15px;
+  font-size: 25px;
+  align-self: center;
+}
