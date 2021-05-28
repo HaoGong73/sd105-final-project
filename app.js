@@ -2,8 +2,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaGFvZ29uZyIsImEiOiJja3A1a2tnNXgwNTk1Mm9ydzYzd
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v11',
-  center: [ -97.1554247, 49.8813312 ], // lat , lon
-  zoom: 10.5
+  center: [-97.1554247, 49.8890312 ], // lat , lon [-97.1554247, 49.8890312 ] [ -97.0, 49.8890312 ]
+  zoom: 10.3
 });
 const markerOri = new mapboxgl.Marker({ color: "#00FF7F" });
 const markerDes = new mapboxgl.Marker({ color: "#FF0000" });
@@ -24,7 +24,6 @@ const getTripPlan = async (oriGeo, desGeo) => {
   const response = await fetch(url);
   const data = await response.json();
 
-  console.log(data.plans.length);
   if(data.plans.length === 0) {
     throw new Error('No response for this query.');
   }
@@ -214,13 +213,10 @@ const displayPlans = (sortPlans) => {
 }
 
 const getRoute = async (oriPoint, desPoint) => {
-  console.log(oriPoint);
-  console.log(desPoint);
-  const url = `https://api.mapbox.com/directions/v5/mapbox/cycling/${oriPoint.lon},${oriPoint.lat};${desPoint.lon},${desPoint.lat}?steps=true&geometries=geojson&access_token=${accessToken}`;
+  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${oriPoint.lon},${oriPoint.lat};${desPoint.lon},${desPoint.lat}?steps=true&geometries=geojson&access_token=${accessToken}`;
   const response = await fetch(url);
   const data = await response.json();
 
-  console.log(data.routes);
   return data.routes;
 }
 
@@ -241,7 +237,10 @@ const clearRouteOnMap = () => {
 }
 
 const drawLineForRoute = (data) => {
+  // route array item'structure : [-97.226806, 49.902397]
   const route = data[0].geometry.coordinates;
+  // in order to make the route line consistant
+  route.unshift([oriGeoObj.lon, oriGeoObj.lat]);
   const geojson = {
     type: 'Feature',
     properties: {},
@@ -296,6 +295,5 @@ document.querySelector('.plan-trip').addEventListener('click', (event) => {
   .catch(error => alert(error));
   originsList.innerHTML = '';
   destinationsList.innerHTML = '';
-  oriGeoObj.lat = 100;
-  desGeoObj.lat = 100;
+  map.flyTo({center: [-97.0, 49.8890312 ]});
 })

@@ -62,7 +62,6 @@ input:focus {
   color: white;
   cursor: pointer;
   width: 100%;
-
 }
 
 .bus-container{
@@ -74,13 +73,13 @@ input:focus {
   margin: auto;
   border: 1px solid #d3d3d9;
   background-color: #ffffff;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .my-trip li {
   margin: 10px 0px;
   font-size: 17px;
-  /* display: flex; */
+  display: flex;
 }
 
 .my-trip i {
