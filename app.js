@@ -2,12 +2,13 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaGFvZ29uZyIsImEiOiJja3A1a2tnNXgwNTk1Mm9ydzYzd
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v11',
-  center: [ -97.1554247, 49.8813312 ],
-  zoom: 11
+  center: [ -97.1554247, 49.8813312 ], // lat , lon
+  zoom: 10.5
 });
+const markerOri = new mapboxgl.Marker({ color: "#00FF7F" });
+const markerDes = new mapboxgl.Marker({ color: "#FF0000" });
 const accessToken = 'pk.eyJ1IjoiaGFvZ29uZyIsImEiOiJja3A1a2tnNXgwNTk1Mm9ydzYzdnpoMnc3In0.nLCurZfPXsXgaO2snpAmrw';
 const apiKey = 'y3HnuYNUAqAbaf7rmLl9';
-const marker = new mapboxgl.Marker();
 const originsList = document.querySelector('.origins');
 const destinationsList = document.querySelector('.destinations');
 const tripPlans = document.querySelector('.bus-container');
@@ -15,10 +16,8 @@ tripPlans.innerHTML = '';
 originsList.innerHTML = '';
 destinationsList.innerHTML = '';
 
-
-const winnipegCenter = { lat: 49.8813312, lon: -97.1554247};
-const oriGeoObj = { lat: 100, lon: 0 };
-const desGeoObj = { lat: 100, lon: 0 };
+const oriGeoObj = { lat: 0, lon: 100 };
+const desGeoObj = { lat: 0, lon: 100 };
 
 const getTripPlan = async (oriGeo, desGeo) => {
   const url = `https://api.winnipegtransit.com/v3/trip-planner.json?api-key=${apiKey}&origin=geo/${oriGeo.lat},${oriGeo.lon}&destination=geo/${desGeo.lat},${desGeo.lon}&usage=long`;
@@ -33,8 +32,8 @@ const getTripPlan = async (oriGeo, desGeo) => {
 }
 
 const getGeoPoints = async function(address) {
-  const targetUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${address}.json?access_token=${accessToken}&limit=10&bbox=-97.325875, 49.766204, -96.953987, 49.99275`;
-  const response = await fetch(targetUrl);
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${address}.json?access_token=${accessToken}&limit=10&bbox=-97.325875, 49.766204, -96.953987, 49.99275`;
+  const response = await fetch(url);
   const data = await response.json();
 
   return data.features;
@@ -91,6 +90,8 @@ document.forms[0].addEventListener('submit', (event) => {
   .then(data => {return prepareListObj(data)})
   .then(listArray => renderOriListHTML(listArray))
   event.target[0].value = '';
+  tripPlans.innerHTML = '';
+  if (map.getLayer('route')) map.removeLayer('route');
 })
 
 document.forms[1].addEventListener('submit', (event) => {
@@ -99,6 +100,7 @@ document.forms[1].addEventListener('submit', (event) => {
   .then(data => {return prepareListObj(data)})
   .then(listArray => renderDesListHTML(listArray))
   event.target[0].value = '';
+  if (map.getLayer('route')) map.removeLayer('route');
 })
 
 originsList.addEventListener('click', (event) => {
@@ -109,7 +111,7 @@ originsList.addEventListener('click', (event) => {
   listItem.classList.add('selected');
   oriGeoObj.lat = listItem.dataset.lat;
   oriGeoObj.lon = listItem.dataset.lon;
-  // console.log(oriGeoObj);
+  markerOri.setLngLat([oriGeoObj.lon, oriGeoObj.lat]).addTo(map);
 })
 
 destinationsList.addEventListener('click', (event) => {
@@ -120,7 +122,7 @@ destinationsList.addEventListener('click', (event) => {
   listItem.classList.add('selected');
   desGeoObj.lat = listItem.dataset.lat;
   desGeoObj.lon = listItem.dataset.lon;
-  // console.log(desGeoObj);
+  markerDes.setLngLat([desGeoObj.lon, desGeoObj.lat]).addTo(map);
 })
 
 // sort rules: least time, least walk, least transfer
@@ -151,7 +153,6 @@ const getOneOrgnazedPlan =(plan) => {
     if (segment.type === 'ride') { 
       formatRoute.route = segment.route.key;
       formatRoute.name = segment.route.name;
-      formatRoute.bus = segment.bus.key;
     }
     sortRules.totalTime += segment.times.durations.total;
     steps.push(formatRoute);
@@ -211,15 +212,65 @@ const displayPlans = (sortPlans) => {
   tripPlans.innerHTML = tempHTML;
 }
 
+const getRoute = async (oriPoint, desPoint) => {
+  console.log(oriPoint);
+  console.log(desPoint);
+  const url = `https://api.mapbox.com/directions/v5/mapbox/cycling/${oriPoint.lon},${oriPoint.lat};${desPoint.lon},${desPoint.lat}?steps=true&geometries=geojson&access_token=${accessToken}`;
+  const response = await fetch(url);
+  const data = await response.json();
+
+  console.log(data.routes);
+  return data.routes;
+}
+
+const drawLineForRoute = (data) => {
+  const route = data[0].geometry.coordinates;
+  const geojson = {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'LineString',
+      coordinates: route
+    }
+  };
+
+  if (map.getLayer('route')) map.removeLayer('route');
+
+  map.addLayer({
+    id: 'route',
+    type: 'line',
+    source: {
+      type: 'geojson',
+      data: geojson
+    },
+    layout: {
+      'line-join': 'round',
+      'line-cap': 'round'
+    },
+    paint: {
+      'line-color': '#3887be',
+      'line-width': 5,
+      'line-opacity': 0.8
+    }
+  });
+} 
+
+const drawRouteOnMap = () => {
+  getRoute(oriGeoObj, desGeoObj)
+  .then(data => drawLineForRoute(data))
+  .catch(error => console.log(error));
+}
+
 document.querySelector('.plan-trip').addEventListener('click', (event) => {
-  if(oriGeoObj.lat === 100) {
+  if(oriGeoObj.lon === 100) {
     alert('Please choose your start points')
     return;
   }
-  if(desGeoObj.lat === 100) {
+  if(desGeoObj.lon === 100) {
     alert('Please choose your destination')
     return;
   } 
+  drawRouteOnMap();
   getTripPlan(oriGeoObj ,desGeoObj)
   .then(data => {return sortPlans(data)})
   .then(sortPlans => displayPlans(sortPlans))
