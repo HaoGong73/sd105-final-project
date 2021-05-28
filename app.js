@@ -91,7 +91,7 @@ document.forms[0].addEventListener('submit', (event) => {
   .then(listArray => renderOriListHTML(listArray))
   event.target[0].value = '';
   tripPlans.innerHTML = '';
-  if (map.getLayer('route')) map.removeLayer('route');
+
 })
 
 document.forms[1].addEventListener('submit', (event) => {
@@ -100,7 +100,6 @@ document.forms[1].addEventListener('submit', (event) => {
   .then(data => {return prepareListObj(data)})
   .then(listArray => renderDesListHTML(listArray))
   event.target[0].value = '';
-  if (map.getLayer('route')) map.removeLayer('route');
 })
 
 originsList.addEventListener('click', (event) => {
@@ -112,6 +111,7 @@ originsList.addEventListener('click', (event) => {
   oriGeoObj.lat = listItem.dataset.lat;
   oriGeoObj.lon = listItem.dataset.lon;
   markerOri.setLngLat([oriGeoObj.lon, oriGeoObj.lat]).addTo(map);
+  clearRouteOnMap();
 })
 
 destinationsList.addEventListener('click', (event) => {
@@ -123,6 +123,7 @@ destinationsList.addEventListener('click', (event) => {
   desGeoObj.lat = listItem.dataset.lat;
   desGeoObj.lon = listItem.dataset.lon;
   markerDes.setLngLat([desGeoObj.lon, desGeoObj.lat]).addTo(map);
+  clearRouteOnMap();
 })
 
 // sort rules: least time, least walk, least transfer
@@ -223,6 +224,22 @@ const getRoute = async (oriPoint, desPoint) => {
   return data.routes;
 }
 
+const clearRouteOnMap = () => {
+  let route = [];
+  const geojson = {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'LineString',
+      coordinates: route
+    }
+  };
+
+  if (map.getSource('route')) {
+    map.getSource('route').setData(geojson);
+  }
+}
+
 const drawLineForRoute = (data) => {
   const route = data[0].geometry.coordinates;
   const geojson = {
@@ -234,25 +251,27 @@ const drawLineForRoute = (data) => {
     }
   };
 
-  if (map.getLayer('route')) map.removeLayer('route');
-
-  map.addLayer({
-    id: 'route',
-    type: 'line',
-    source: {
-      type: 'geojson',
-      data: geojson
-    },
-    layout: {
-      'line-join': 'round',
-      'line-cap': 'round'
-    },
-    paint: {
-      'line-color': '#3887be',
-      'line-width': 5,
-      'line-opacity': 0.8
-    }
-  });
+  if (map.getSource('route')) {
+    map.getSource('route').setData(geojson);
+  } else { 
+    map.addLayer({
+      id: 'route',
+      type: 'line',
+      source: {
+        type: 'geojson',
+        data: geojson
+      },
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round'
+      },
+      paint: {
+        'line-color': '#3887be',
+        'line-width': 5,
+        'line-opacity': 0.8
+      }
+    });
+  }
 } 
 
 const drawRouteOnMap = () => {
