@@ -2,7 +2,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaGFvZ29uZyIsImEiOiJja3A1a2tnNXgwNTk1Mm9ydzYzd
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v11',
-  center: [-97.1554247, 49.8890312 ], // lat , lon [-97.1554247, 49.8890312 ] [ -97.0, 49.8890312 ]
+  center: [-97.1554247, 49.8890312 ], // lon , lat [-97.1554247, 49.8890312 ] [ -97.0, 49.8890312 ]
   zoom: 10.3
 });
 const markerOri = new mapboxgl.Marker({ color: "#00FF7F" });
@@ -53,11 +53,11 @@ const renderOriListHTML = (oriListArray) => {
   });
 }
 
-const renderOneDesItemHTML = (originItem) => {
+const renderOneDesItemHTML = (desginItem) => {
   destinationsList.innerHTML += 
-    `<li class="des-item" data-lon="${originItem.lon}" data-lat="${originItem.lat}" >
-      <div class="name">${originItem.name}</div>
-      <div>${originItem.street}</div>
+    `<li class="des-item" data-lon="${desginItem.lon}" data-lat="${desginItem.lat}" >
+      <div class="name">${desginItem.name}</div>
+      <div>${desginItem.street}</div>
     </li>`
 }
 
@@ -90,7 +90,6 @@ document.forms[0].addEventListener('submit', (event) => {
   .then(listArray => renderOriListHTML(listArray))
   event.target[0].value = '';
   tripPlans.innerHTML = '';
-
 })
 
 document.forms[1].addEventListener('submit', (event) => {
@@ -126,7 +125,7 @@ destinationsList.addEventListener('click', (event) => {
 })
 
 // sort rules: least time, least walk, least transfer
-const getOneOrgnazedPlan =(plan) => {
+const getOneOrgnaizedPlan =(plan) => {
   let onePlan = [];
   let steps = [];
   let sortRules = {};
@@ -164,10 +163,10 @@ const getOneOrgnazedPlan =(plan) => {
   return onePlan;
 }
 
-const sortPlans = (plans) => {
+const rebuildPlansArray = (plans) => {
   let newPlansArray = [];
   plans.forEach( plan => {
-    newPlansArray.push(getOneOrgnazedPlan(plan.segments));
+    newPlansArray.push(getOneOrgnaizedPlan(plan.segments));
   })
   return newPlansArray;
 }
@@ -201,9 +200,10 @@ const renderOnePlanHTML = (plan) => {
   return tripPlanHTML;
 }
 
-const displayPlans = (sortPlans) => {
+const displayTop2Plans = (unsortedPlans) => {
   let tempHTML = '';
-  let sortByTotalTime = sortPlans.sort((a,b) => {return a[1].totalTime - b[1].totalTime})
+  // in this case I chose the rule : least time
+  let sortByTotalTime = unsortedPlans.sort((a,b) => {return a[1].totalTime - b[1].totalTime})
   for (let i = 0; i < 2; i++) {
     tempHTML += `<ul class="my-trip">`;
     tempHTML += renderOnePlanHTML(sortByTotalTime[i][0]);
@@ -290,8 +290,8 @@ document.querySelector('.plan-trip').addEventListener('click', (event) => {
   } 
   drawRouteOnMap();
   getTripPlan(oriGeoObj ,desGeoObj)
-  .then(data => {return sortPlans(data)})
-  .then(sortPlans => displayPlans(sortPlans))
+  .then(data => {return rebuildPlansArray(data)})
+  .then(unsortedPlansArray => displayTop2Plans(unsortedPlansArray))
   .catch(error => alert(error));
   originsList.innerHTML = '';
   destinationsList.innerHTML = '';
