@@ -137,13 +137,15 @@ const getOneOrgnaizedPlan =(plan) => {
     let formatRoute = {};
     formatRoute.type = segment.type;
     formatRoute.time = segment.times.durations.total;
-    if (segment.type === 'walk' && plan.length === steps.length + 1) {
-      formatRoute.nextStop = 'your destination';
-    } else if (segment.type === 'walk') {
-      formatRoute.nextStop = `stop #${segment.to.stop.key} - ${segment.to.stop.name}`;
-    }
 
-    if (segment.type === 'walk') { sortRules.walkTime += segment.times.durations.total }
+    if (segment.type === 'walk') {
+      if (plan.length !== steps.length + 1) {
+        formatRoute.nextStop = `stop #${segment.to.stop.key} - ${segment.to.stop.name}`;
+      } else {
+        formatRoute.nextStop = 'your destination';
+      }
+      sortRules.walkTime += segment.times.durations.total;
+    }
     if (segment.type === 'transfer') { 
       sortRules.transferTimes += 1;
       formatRoute.transferFrom = `#${segment.from.stop.key}-${segment.from.stop.name}`;
