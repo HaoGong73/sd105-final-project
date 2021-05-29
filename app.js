@@ -241,6 +241,7 @@ const drawLineForRoute = (data) => {
   const route = data[0].geometry.coordinates;
   // in order to make the route line consistant
   route.unshift([oriGeoObj.lon, oriGeoObj.lat]);
+  route.push([desGeoObj.lon, desGeoObj.lat]);
   const geojson = {
     type: 'Feature',
     properties: {},
